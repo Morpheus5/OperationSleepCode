@@ -10,6 +10,7 @@ function [mov_data_BS] = SM_BatchBS(DIR)
 % It saves background subtracted videos in mat & avi format.
 % It also motion-corrects the BS videos and the data matrix, and makes  
 % maximum projection images for ROI selection later.
+% Motion correction not working
 
 %% VARIABLES:
 DSFactor = 4; %downsampling: 4; otherwise 1
