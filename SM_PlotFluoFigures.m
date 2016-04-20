@@ -1,4 +1,4 @@
-function SM_PlotOneOrMultVideos(roi_ave)
+function SM_PlotFluoFigures(roi_ave)
 
 %% Prepare reading in the data
 
@@ -8,11 +8,12 @@ function SM_PlotOneOrMultVideos(roi_ave)
 
 %% VARIABLES make sure to adjust if necessary
 
-VideosSelected = 1; %1:Videos; %[7 10 13 15 17 ]; 
+VideosSelected = 1:Videos; %[7 10 13 15 17 ]; 
 framerate = 30; % nr of frames per second
-comptime = 10; % frames to delete at beginning & compensate in graph
-BOSselection = comptime:Frames;
-savefilename = ['multiple_plot_' datestr(clock)];
+compensationtime = 30; % frames to delete at beginning & end (similar to Byron's plots)
+BOSselection = compensationtime:(Frames-compensationtime);
+PlottedNrOfFrames = length(BOSselection)
+savefilename = ['fluoplot_' datestr(clock)];
 
 %% Calculate values and preallocate matrix
 BOStime = length(BOSselection);
@@ -59,8 +60,8 @@ for videoIter3 = VideosSelected
     for ROIiter2 = 1:ROIS    
         dff = plotPerVideo(ROIiter2,:);
         shiftup = (0.05*counter-1); 
-        plot(((comptime+(1:length(dff)))/framerate),dff+shiftup,'Color',c(ROIiter2,:),'LineWidth',1.0);
-        xlim([0 ((comptime+BOStime)/framerate)]);
+        plot(((0:length(dff))/framerate),dff+shiftup,'Color',c(ROIiter2,:),'LineWidth',1.0);
+        xlim([0 (BOStime/framerate)]);
         counter = counter+1;
     end
     hold off
@@ -73,39 +74,4 @@ set(findall(gcf,'type','text'),'FontSize',13,'fontWeight','bold')
 save(savefilename);
   
 end
-
-
-
-%% ----[ Setup Sonogram ]------%
-
-% fs=24.4141e3;
-% [b,a]=ellip(5,.2,80,[500]/(fs/2),'high');
-% [IMAGE,F,T]=fb_pretty_sonogram(filtfilt(b,a,mic_data./abs(max(mic_data))),fs,'low',1.5,'zeropad',0);
-
-%% ----[ Plotting ]------%
-% h(1) = subplot(10,1,1:2);
-%       imagesc((T*framerate - startTime*framerate + 1)/framerate,F,log(abs(IMAGE)+1e+2));set(gca,'YDir','normal');
-%       colormap(flipud(bone)*.8)
-%       freezeColors;
-%       ylim([0 9000]);
-%       hold on
-
-% here, you can make a subplot on top with a sonogram, for example
-% h(2) = subplot(10,1,3:10);
-% title('Calcium transients LNY19RB 9/2/15 BOS playback #4 (normalized ROIs)');
-
-
-%% ---------[ Optional: picking peaks ] --------------%
-
-% This code is for selecting peaks in fluorescense change and constructing
-% a raster plot based on those
-%      
-%   [pks,locs] = findpeaks(dff,'MinPeakWidth',100,'MinPeakProminence',1.0*std(dff));
-% 	hold on; plot(locs/framerate,pks+shiftup,'*','Color',c(i,:));% line([locs(:,:)/framerate,locs(:,:)/framerate],[-1 9],'Color',c(i,:))
-% 	hold off
-%     
-%   locs = transpose(locs);
-%    
-%   hold on
-%   line([locs(:,:)/framerate,locs(:,:)/framerate],[500 2000],'Color',c(i,:))
-%   hold off
+end

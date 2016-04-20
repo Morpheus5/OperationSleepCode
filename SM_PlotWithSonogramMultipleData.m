@@ -4,12 +4,12 @@
     % and the output matrix from plot one or multiple videos 
     % and the stimulus: SONG = audioread('filename');
     
-sonogram_comptime = 150; % frame at which song started playing 
+sonogram_comptime = 120; % frame at which song started playing 
 comptime = 10; % frames clipped from beginning and compensated in graph
 data_to_plot = total_dffvideos; % matrix from which data is grabbed
 fs = 48000;
-SelectedVideos = [11:29]; 
-shiftupValue = 0.8;
+SelectedVideos = [1]; 
+shiftupValue = 0.2;
 
 startTime = (1*(1/framerate));
 endTime = (Frames*(1/framerate));

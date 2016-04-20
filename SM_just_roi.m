@@ -2,8 +2,8 @@ function [roi_ave] = SM_just_roi(ROI,varargin)
 % ROIS is a cell array of image indices returned by FS_image_roi
 
 % VARIABLES
-ave_fs=30; % frame rate
-duration=30; % movie duration in seconds
+%ave_fs=30; % frame rate
+%duration=30; % movie duration in seconds
 %ave_fs_i=20*ave_fs; % after interpolation
 resize = 1;
 colors=eval(['winter(' num2str(length(ROI.coordinates)) ')']);
@@ -41,15 +41,18 @@ mov_listing(to_del)=[];
 load(fullfile(pwd,mov_listing{1}),'video');
 mov_data_temp = video.frames;
 for VideoIter = 1:length(mov_data_temp)
-    mov_data(:,:,VideoIter) = mov_data_temp(VideoIter).cdata;
-end
+    mov_data_temp(VideoIter)
+    mov_data(:,:,:,VideoIter) = mov_data_temp(VideoIter).cdata;
+   end
 mov_data = double(mov_data);
 
 [rows,columns,frames]=size(mov_data);
 
-t = 1/ave_fs % seconds/frame
-ave_time = (t):(t):(duration);
-number_of_frames = length(ave_time)
+%t = 1/ave_fs % seconds/frame
+%ave_time = (t):(t):(duration);
+ave_time = video.times
+%number_of_frames = length(ave_time)
+number_of_frames = video.nrFramesTotal
 roi_ave.raw={};
 
 clear mov_data % to allow looping through each video below

@@ -9,7 +9,7 @@ function SM_PlotSummedVideos(roi_ave)
 %% VARIABLES make sure to adjust if necessary
 VideosSelected = 1:Videos;  
 framerate = 30;
-comptime=10; % frames to delete at beginning & compensate in graph
+comptime = 10; % frames to delete at beginning & compensate in graph
 BOSselection = comptime:Frames;
 savefilename = ['summed_matrix_' datestr(clock)];
 

@@ -4,11 +4,11 @@
     % and the output matrix from plot summed videos 
     % and the stimulus: SONG = audioread('filename');
     
-sonogram_comptime = 150; % frame at which song started playing
+sonogram_comptime = 120; % frame at which song started playing
 comptime = 10; % frames clipped from beginning and compensated in graph
 data_to_plot = summed_dffvideos; % matrix from which data is grabbed
 fs = 48000;
-shiftupValue = 0.08;
+shiftupValue = 0.04;
 
 startTime = (1*(1/framerate));
 endTime = (Frames*(1/framerate));
@@ -36,7 +36,7 @@ figure()
 for ROIiter = 1:ROIS
 dataPerROI = data_to_plot(ROIiter,:); % Only when using summed matrix (not when multiple matrix)
 shiftup = (shiftupValue*counter-1); 
-plot(((((comptime+(1:length(dataPerROI)))))/framerate),dataPerROI+shiftup,'Color',c(ROIiter,:),'LineWidth',1.0);
+plot(((comptime+(1:length(dataPerROI)))/framerate),dataPerROI+shiftup,'Color',c(ROIiter,:),'LineWidth',1.0);
 counter=counter+1;
     
 end
