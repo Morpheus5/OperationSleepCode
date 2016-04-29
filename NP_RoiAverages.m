@@ -1,4 +1,4 @@
-function [roi_ave] = SM_RoiAverages(ROI,varargin)
+function [roi_ave] = NP_RoiAverages(ROI,varargin)
 % ROIS is a cell array of image indices returned by FS_image_roi
 
 % VARIABLES
@@ -9,6 +9,7 @@ colors=eval(['winter(' num2str(length(ROI.coordinates)) ')']);
 sono_colormap='hot';
 save_dir='roi';
 template=[];
+donut = 1; % donut 0 or 1
 
 %% first convert ROIS to row and column indices
 
@@ -78,18 +79,8 @@ for VideoIter=1:Videos
 
         [nblanks formatstring] = fb_progressbar(100);
         fprintf(1,['Progress:  ' blanks(nblanks)]);
-
-        % unfortunately we need to for loop by frames, otherwise
-        % we'll eat up too much RAM for large movies
-
-        for ROIiter = 1:roi_n
-            fprintf(1,formatstring,round((ROIiter/roi_n)*100));
-
-            for FrameIter2 = 1:frames 
-                roi_data_tmp = mov_data(ROI.coordinates{ROIiter}(:,2),ROI.coordinates{ROIiter}(:,1),FrameIter2); 
-                roi_data(ROIiter,FrameIter2,:) = mean(roi_data_tmp(:)); 
-            end
-        end
+        
+        roi_data = NP_ExtractROIs(mov_data, ROI, donut);
 
         fprintf(1,'\n');
         
