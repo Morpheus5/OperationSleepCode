@@ -30,7 +30,7 @@ numFrames = size(Spike_Data,3);
 
 Recording_Time = size(Spike_Data,3)/Fs;
 
-for i=1%:numVideos
+for i=1:numVideos
     avalanches = squeeze(Av_Data(i,:));
     spikes = squeeze(Spike_Data(i,n,:));
     traces = squeeze(Trace_Data(i,n,:));
