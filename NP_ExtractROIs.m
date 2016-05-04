@@ -17,7 +17,6 @@ if ~exist('donut', 'var') || isempty(donut)
 end
 
 % examine inputs
-video_length = length(frames);
 roi_count = length(roi.stats);
 
 % convert to grayscale video
@@ -26,6 +25,7 @@ if isstruct(frames)
 else
     video_gs = frames;
 end
+video_length = size(video_gs, 3);
 
 % get roi data
 

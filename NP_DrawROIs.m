@@ -14,16 +14,7 @@ end
 draw_for = round(0.25 * Fs); % 0.25 seconds
 
 % examine inputs
-video_length = length(frames);
 roi_count = length(roi.stats);
-
-% check lengths
-if size(spike_data, 1) ~= roi_count
-    error('Expecting %d regions in the spike data.', roi_count);
-end
-if size(spike_data, 2) ~= video_length
-    error('Expecting %d frames in the spike data.', video_length);
-end
 
 % generate output video
 % concatenate all frames and convert to double)
@@ -31,6 +22,15 @@ if isstruct(frames)
     video_gs = cat(3, frames(:).cdata);
 else
     video_gs = frames;
+end
+video_length = size(video_gs, 3);
+
+% check lengths
+if size(spike_data, 1) ~= roi_count
+    error('Expecting %d regions in the spike data.', roi_count);
+end
+if size(spike_data, 2) ~= video_length
+    error('Expecting %d frames in the spike data.', video_length);
 end
 
 % convert to RGB
