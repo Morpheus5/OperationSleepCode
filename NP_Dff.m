@@ -1,4 +1,4 @@
-function video_dff = NP_Dff(frames)
+function video_dff = NP_Dff(frames, varargin)
 %FS_DFF_NEW Generates delta f over f video
 %   When passed a video, this function calculates a delta f over f version
 %   of the video, which is useful for visualizing Calcium traces. This
@@ -24,6 +24,20 @@ function video_dff = NP_Dff(frames)
 filt_rad = 1; % gauss filter radius
 filt_alpha = 1; % gauss filter alpha
 per = 10; % baseline percentile (0 for min)
+clim = [0.5 0.99]; % color range
+
+% load custom parameters
+nparams = length(varargin);
+if 0 < mod(nparams, 2)
+    error('Parameters must be specified as parameter/value pairs.');
+end
+for i = 1:2:nparams
+    nm = lower(varargin{i});
+    if ~exist(nm, 'var')
+        error('Invalid parameter: %s.', nm);
+    end
+    eval([nm ' = varargin{i+1};']);
+end
 
 % turn into movie data
 if isstruct(frames)
@@ -51,7 +65,7 @@ video_dff = bsxfun(@minus, mov .^ 2, baseline .^ 2);
 video_dff = bsxfun(@rdivide, video_dff, baseline);
 
 % get high and low percentiles
-video_dff = video_adjust(video_dff, [0.5 0.99]);
+video_dff = video_adjust(video_dff, clim);
 
 end
 

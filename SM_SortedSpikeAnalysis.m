@@ -2,11 +2,12 @@ close all;
 % Make sure that Spike_Data is loaded (Spontaneous_Data.mat from Byron's
 % scripts) for calculation of burst starting & end times
 
+%Spike_Data = spikes;
+
 %% Variables:
-num_skipped = 1; 
 
 WindowParameter = 4; % in frames 
-% so WP * framerate == window in seconds
+% so WP / framerate == window in seconds
 % Wills data is 22 fr/sec; mine 30 fr/sec
 
 TakeOutLowNrs = 0; % For plotting ROIindex
@@ -22,7 +23,7 @@ num_ROIs = size(Spike_Data,2);
 %      1  2 3 4  5  6  7  8  9 10 11 12  13  14 15 16 17 18 19 20
 
 % For SanneSleep6 as comparison to Wills: (14 ROIs / 8&9, 15&16 overlapped)
-n = [ 1 2 3 4 5 6 7 8 10 11 12 13 14 15 ];
+% n = [ 1 2 3 4 5 6 7 8 10 11 12 13 14 15 ];
 
 % For SanneSleep7 all ROIs: (28 ROIs / top left group / 10&11 overlapped)
 % n = [ 1 2 3 4 5 6 7 8 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29];
@@ -49,11 +50,11 @@ n = [ 1 2 3 4 5 6 7 8 10 11 12 13 14 15 ];
 % n = [ 6 7 8 13 14 15 16 17 18 19 20 21 23 24 25 26 28 29 30 31 ];
 
 % For plotting all ROIs:
-% n = 1:num_ROIs;
+n = 1:num_ROIs;
 
 
 num_videos = size(Spike_Data,1);
-% num_videos = 18
+% num_videos = 1;
 
 num_frames = size(Spike_Data,3);
 num_ROIs = size(n,2);
@@ -80,7 +81,7 @@ for VideoIter1 = 1: num_videos
     
 end
 
-savefilename1 = ['AllVideoSpikingFrames_' num2str(WindowParameter) 'frameswindow'];
+savefilename1 = ['Video6_SpikingFrames_' num2str(WindowParameter) 'frameswindow'];
 save(savefilename1,'AllVideoSpikingFrames')
 
 % AllVideoSpikingFrames shows per video, per ROI, in which frame(s) the cells spiked 
@@ -107,13 +108,18 @@ for VideoIter2 = 1:num_videos;
             num_I = length(I);
 
             for I_Iter = 1: (num_I) - 1
-                frameI = AllVideoSpikingFrames{VideoIter2}(I(I_Iter),J(I_Iter));
-                frameJ = AllVideoSpikingFrames{VideoIter2}(I(I_Iter+1),J(I_Iter+1));
-                if frameI~=0; 
-                    SpikeTogetherMatrix(end+1,1) = I(I_Iter);
-                    SpikeTogetherMatrix(end,2) = I(I_Iter+1);
-                    SpikeTogetherMatrix(end,3) = (VideoIter2 - 1) * num_frames + frameI;
-                    SpikeTogetherMatrix(end,4) = (VideoIter2 - 1) * num_frames + frameJ;
+                
+                for J_Iter = (I_Iter + 1): num_I
+                    
+                    frameI = AllVideoSpikingFrames{VideoIter2}(I(I_Iter),J(I_Iter));
+                    frameJ = AllVideoSpikingFrames{VideoIter2}(I(J_Iter),J(J_Iter));
+                    
+                    if frameI~=0; 
+                        SpikeTogetherMatrix(end+1,1) = I(I_Iter);
+                        SpikeTogetherMatrix(end,2) = I(J_Iter);
+                        SpikeTogetherMatrix(end,3) = (VideoIter2 - 1) * num_frames + frameI;
+                        SpikeTogetherMatrix(end,4) = (VideoIter2 - 1) * num_frames + frameJ;
+                    end
                 end
             end
         end
@@ -240,10 +246,7 @@ for SeqIter1 = 1:size(AllSeqIndex,2)
 end
 
 % Sort ROIindex using SeqIndex:
-SortedROIindex = [];
-for SeqIter3 = SeqIndex
-    SortedROIindex(end+1,:) = ROIindex(SeqIter3,:);
-end
+SortedROIindex = ROIindex(SeqIndex, SeqIndex);
 
 
 %% Prepare data for plotting
@@ -259,10 +262,7 @@ LagPlotting = squeeze(ROIlags(:,:,1)) + WindowParameter; % Add WP to make sure a
 LagPlotting(isnan(LagPlotting))=0; %replace NaNs by zeros
 
 % Sort LagPlotting using SeqIndex:
-SortedLagPlotting = [];
-for SeqIter3 = SeqIndex
-    SortedLagPlotting(end+1,:) = LagPlotting(SeqIter3,:);
-end
+SortedLagPlotting = LagPlotting(SeqIndex, SeqIndex);
 
 
 LagVar = squeeze(ROIlags(:,:,2)) + WindowParameter; % Add WP to make sure all values are positive
@@ -271,10 +271,7 @@ LagVar = squeeze(ROIlags(:,:,2)) + WindowParameter; % Add WP to make sure all va
 LagVar(isnan(LagVar))=0; %replace NaNs by zeros
 
 % Sort LagVar using SeqIndex:
-SortedLagVar = [];
-for SeqIter3 = SeqIndex
-    SortedLagVar(end+1,:) = LagVar(SeqIter3,:);
-end
+SortedLagVar = LagVar(SeqIndex, SeqIndex);
 
 
 % Remove values that are below the TakeOutLowNrs threshold for sparser
@@ -296,7 +293,7 @@ for ROIXlooping = 1:num_ROIs
     end
 end
 
-savefilename2 = ['ROIindexAllData_' num2str(WindowParameter) 'frameswindow'];
+savefilename2 = ['Video6_ROIindexAllData_' num2str(WindowParameter) 'frameswindow'];
 save(savefilename2, 'ROIindex','SortedROIindex','SeqIndex','SpikeTogetherMatrix','SpikeTogetherUnique','ROIorder','ROIlags','n','NrOfSpikesIn2ROIs','TakeOutLowNrs','WindowParameter','ROIplotting','AdjustedLagPlotting','AdjustedLagVar') 
 
 
@@ -320,7 +317,7 @@ end
 
 % Plot & save 1
 CoActFigLag = figure('Name','Co-activity index indicated in line width; leading/lagging indicated in grayscale'); 
-circularGraph(ROIplotting,'ColorMap',cmapgray,'ColorValue',AdjustedLagPlotting,'Label',nodeLabels);  
+circularGraph(ROIplotting,'ColorMap',cmapgray,'ColorValue',AdjustedLagPlotting,'ColorRange',[0 2*WindowParameter],'Label',nodeLabels);  
 colorbar('Position',[0.85 0.15 0.02 0.7],'ColorMap',cmapgray,'Ticks',[0 0.5 1], 'Ticklabels',{'lagging','simultaneous','leading'})
 
 savefilename3 = ['ROI_Co-activity_&_Lag_' num2str(WindowParameter) 'frameswindow'];
@@ -338,7 +335,7 @@ saveas(CoActFig,savefilename4,'fig');
 
 % Plot & save 3
 LagFig = figure('Name','Leading/lagging indicated in colormap; Variation in line width'); 
-circularGraph(AdjustedLagVar,'ColorMap',cmapcool,'ColorValue',AdjustedLagPlotting,'Label',nodeLabels);
+circularGraph(AdjustedLagVar,'ColorMap',cmapcool,'ColorValue',AdjustedLagPlotting,'ColorRange',[0 2*WindowParameter],'Label',nodeLabels);
 colorbar('Position',[0.85 0.15 0.02 0.7],'ColorMap',cmapcool, 'Ticks', [0 0.5 1], 'Ticklabels',{'lagging','simultaneous','leading'})
 
 savefilename5 = ['ROI_Lags_&_Variation_' num2str(WindowParameter) 'frameswindow'];
