@@ -64,7 +64,7 @@ for i = 1:numVideos
     for j = 1:numROIs
         [alldata{1,i}(j,:)] = Preprocessing(alldata{1,i}(j,:));
     end
-    Trace_Data(i,:,:) = alldata{1,i};
+    Trace_Data(i,:,:) = alldata{1,i}(:,:);
 end
 
 Detrended = toc

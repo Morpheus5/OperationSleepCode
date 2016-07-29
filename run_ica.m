@@ -1,7 +1,7 @@
 %% LOAD VIDEO
 
 % loading
-load('../Recordings/SanneSleep23_LNY19RB_12-6-15_II_spont(20).mat');
+load('SanneSleep31_LNY19RB_1minSpont_1224_(2).mat');
 
 %% CALCULATE ICA
 
@@ -13,14 +13,14 @@ load('../Recordings/SanneSleep23_LNY19RB_12-6-15_II_spont(20).mat');
 % plot
 plot_ica(ica_sig, mixing, height, width);
 
-%% APPLY TO NEW VIDEO
-
-% loading
-load('../Recordings/SanneSleep23_LNY19RB_12-6-15_II_spont(22).mat');
-
-% the actual ICA part:
-% use separating matrix to perform saming unmixing
-ica_sig2 = NP_ApplyICA(video.frames(30:end-30), separating, height, width);
-
-% plot
-plot_ica(ica_sig2, mixing, height, width);
+% %% APPLY TO NEW VIDEO
+% 
+% % loading
+% load('SanneSleep31_LNY19RB_1minSpont_1224_(2).mat');
+% 
+% % the actual ICA part:
+% % use separating matrix to perform saming unmixing
+% ica_sig2 = NP_ApplyICA(video.frames(30:end-30), separating, height, width);
+% 
+% % plot
+% plot_ica(ica_sig2, mixing, height, width);

@@ -1,4 +1,4 @@
-function plot_many(x, ys, clrs, labels)
+function plot_many(x, ys, clrs, labels, range)
 %PLOT_MANY Plot multiple lines
 %   All lines (one per column of ys) are plotted, spaced out equally and
 %   consistently normalized. This is useful for comparing time synchronized
@@ -18,6 +18,11 @@ function plot_many(x, ys, clrs, labels)
 %   labels - (Optional.) Labels for each line (cell). Provide an empty
 %            vector to skip printing labels, otherwise provide a cell array
 %            with the same number of entries as there are columns in ys.
+%
+%   range - (Optional.) The range used when normalizing each trace. This
+%           defaults to the range of the largest trace in ys, but you can
+%           pass in either a scalar single range or a vector of ranges
+%           corresponding to the number of columns in ys.
 
 % support single argument
 if nargin == 1
@@ -55,9 +60,12 @@ end
 
 % normalize lines
 mn = min(ys, [], 1);
-mx = max(ys, [], 1);
+if ~exist('range', 'var')
+    mx = max(ys, [], 1);
+    range = max(mx - mn);
+end
 ys = bsxfun(@minus, ys, mn);
-ys = bsxfun(@rdivide, ys, max(mx - mn));
+ys = bsxfun(@rdivide, ys, range);
 
 % plot
 xlim([x(1) x(end)]);

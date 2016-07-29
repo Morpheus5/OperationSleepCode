@@ -6,7 +6,7 @@ function [roi_ave] = SM_just_roi(ROI,varargin)
 %duration=30; % movie duration in seconds
 %ave_fs_i=20*ave_fs; % after interpolation
 resize = 1;
-colors=eval(['winter(' num2str(length(ROI.coordinates)) ')']);
+colors=eval(['winter(' num2str(length(ROI.stats)) ')']);
 sono_colormap='hot';
 save_dir='roi';
 template=[];
@@ -17,8 +17,8 @@ template=[];
 if resize~=1
 	disp(['Adjusting ROIs for resizing by factor ' num2str(resize)]);
 
-	for VideoIter=1:length(ROI.coordinates)
-		ROI.coordinates{VideoIter}=round(ROI.coordinates{VideoIter}.*resize);
+	for VideoIter=1:length(ROI.stats)
+		ROI.stats{VideoIter}=round(ROI.stats{VideoIter}.*resize);
 	end
 end
 
@@ -76,7 +76,7 @@ for VideoIter=1:Videos
         save_file=[ file '_roi' ];
 
         [~,~,frames] = size(mov_data); %[rows,columns,frames]
-        roi_n = length(ROI.coordinates);
+        roi_n = length(ROI.stats);
         roi_data = zeros(roi_n,frames);    
             
     %% extract mean values per frame in each ROI circle              
@@ -92,7 +92,7 @@ for VideoIter=1:Videos
             fprintf(1,formatstring,round((ROIiter/roi_n)*100));
 
             for FrameIter2 = 1:frames 
-                roi_data_tmp = mov_data(ROI.coordinates{ROIiter}(:,2),ROI.coordinates{ROIiter}(:,1),FrameIter2); 
+                roi_data_tmp = mov_data(ROI.stats(ROIiter).ConvexHull(:,2),ROI.stats(ROIiter).ConvexHull(:,1),FrameIter2); 
                 roi_data(ROIiter,FrameIter2,:) = mean(roi_data_tmp(:)); 
             end
         end

@@ -1,4 +1,4 @@
-function [AllVideoSpikingFrames, SpikeTogetherUnique, SortedROIindex, ROIlags, CoActFigLag, CoActFig, LagFig, ImFig] = SM_SortedSpikeAnalysis(Spike_Data,n,ROI,WP)
+function [AllVideoSpikingFrames, SpikeTogetherUnique, SortedROIindex, ROIlags, CoActFigLag, CoActFig, LagFig, ImFig] = SM_SortedSpikeAnalysis(Spike_Data,ROI,WP)
 % Make sure that Spike_Data is loaded 
 
 WindowParameter = WP; % in frames - try 4 to begin with
@@ -78,39 +78,42 @@ end
 SpikeTogetherMatrix = [];
 Allspikes = {};
 
-for VideoIter2 = 1:num_videos;
-
-    for FrameIter1 = 1:num_frames;
-        [I,J] = find(AllVideoSpikingFrames{VideoIter2} >= FrameIter1 & AllVideoSpikingFrames{VideoIter2} <= FrameIter1+WindowParameter);
-        % I = ROI identity that was active in the window
-        % Because of the window, it will only pull out ROIs that were
-        % active at the same time. 
-
-        % J = which column was it in? to look up the exact frame 
-        %       each J corresponds to the I in the same row
-
-        if length(I) > 1;
-            num_I = length(I);
-
-            for I_Iter = 1: (num_I) - 1
-                for J_Iter = (I_Iter + 1): num_I
-                    frameI = AllVideoSpikingFrames{VideoIter2}(I(I_Iter),J(I_Iter));
-                    frameJ = AllVideoSpikingFrames{VideoIter2}(I(J_Iter),J(J_Iter));
-                    if frameI~=0; 
-                        SpikeTogetherMatrix(end+1,1) = I(I_Iter);
-                        SpikeTogetherMatrix(end,2) = I(J_Iter);
-                        SpikeTogetherMatrix(end,3) = (VideoIter2 - 1) * num_frames + frameI;
-                        SpikeTogetherMatrix(end,4) = (VideoIter2 - 1) * num_frames + frameJ;
-                    end
-                end
-            end
+for video = 1:num_videos
+    % rows = ROIs; columns = frames
+    spikes = squeeze(Spike_Data(video, :, :));
+    max_frames = size(spikes, 2);
+    
+    % find all spikes
+    [rois, frames] = find(spikes);
+    
+    % for everything that spikes
+    for i = 1:length(rois)
+        % get the subsequent window
+        % (everything that spikes in the currrent frame plus the next WindowParameter - 1 frames)
+        subsequent_spikes = spikes(:, frames(i):min(frames(i) + WindowParameter - 1, max_frames));
+        
+        % prevent double counting (this prevents counting spiking with self
+        % in the same frame, and prevents counting cospiking rois in the
+        % same frame multiple times)
+        subsequent_spikes(1:rois(i), 1) = 0;
+        
+        % roi and frame; everything else in subsequent spikes is a unique
+        % "spike together" with this roi and frame
+        roi = rois(i);
+        frame = frames(i);
+        
+        [co_rois, co_frames] = find(subsequent_spikes);
+        co_frames = co_frames + frame - 1;
+        
+        if ~isempty(co_rois)
+            new_rows = [ones(length(co_rois), 1) * roi, co_rois, ones(length(co_rois), 1) * frame, co_frames];
+            SpikeTogetherMatrix = [SpikeTogetherMatrix; new_rows];
         end
-        clear('I','J');
     end
 end
 
-if size(SpikeTogetherMatrix)==[0,0]
-    'No spikes detected';
+if isempty(SpikeTogetherMatrix)
+    warning('No spikes detected');
 end
 
 I = SpikeTogetherMatrix(:,1);
@@ -138,7 +141,24 @@ for Xiter = 1 : size(SpikeTogetherUnique,1)
     [~,ROIX,~] = find(n==ROIXcoordinate); 
     ROIYcoordinate = SpikeTogetherUnique{Xiter,2};
     [~,ROIY,~] = find(n==ROIYcoordinate);
+    
+%     % OPTION 1: asymmetric; ignore ROIs spiking in same frame
+%     if SpikeTogetherUnique{Xiter, 3} == SpikeTogetherUnique{Xiter, 4}
+%         continue;
+%     end
+%     ROIindex(ROIX,ROIY) = ROIindex(ROIX,ROIY)+1;
+    
+%     % OPTION 2: assymetric; but count spiking together in same frame on
+%     % both side
+%     if SpikeTogetherUnique{Xiter, 3} == SpikeTogetherUnique{Xiter, 4}
+%         ROIindex(ROIY,ROIX) = ROIindex(ROIY,ROIX)+1;
+%     end
+%     ROIindex(ROIX,ROIY) = ROIindex(ROIX,ROIY)+1;
+    
+    % OPTION 3: symmetric
     ROIindex(ROIX,ROIY) = ROIindex(ROIX,ROIY)+1;
+    ROIindex(ROIY,ROIX) = ROIindex(ROIY,ROIX)+1;
+    
     ROIorder{ROIX,ROIY}{end+1,1} = (SpikeTogetherUnique{Xiter,4}) - (SpikeTogetherUnique{Xiter,3});
 
 end

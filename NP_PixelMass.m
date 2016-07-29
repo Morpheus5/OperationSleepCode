@@ -69,7 +69,7 @@ mass = sum(video_dff, 3);
 mass = sum(video_dff .* com_idx, 3) ./ mass;
 
 % normalize
-mass_norm = mat2gray(mass);
+mass_norm = mat2gray(mass, [1 sz_frames]);
 
 % convert to color indices
 idx_img = round(mass_norm .* size(cmap, 1));
@@ -88,6 +88,7 @@ img_comp = img .* repmat(std_proj_norm, 1, 1, 3);
 if nargout == 0
     figure;
     imshow(img_comp);
+    colormap(cmap); colorbar;
 end
 
 end
