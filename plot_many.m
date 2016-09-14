@@ -70,7 +70,7 @@ ys = bsxfun(@rdivide, ys, range);
 % plot
 xlim([x(1) x(end)]);
 ylim([0 y_count]);
-xlabel('Time (s)');
+xlabel('Time (frames)');
 if isempty(labels)
     % no labels
     set(gca, 'YTick', []);

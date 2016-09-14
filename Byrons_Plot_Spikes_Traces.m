@@ -1,4 +1,4 @@
-function [] = Byrons_Plot_Spikes_Traces(filename)
+function [] = Byrons_Plot_Spikes_Traces(filename, roi_ave)
 %Plot_Spikes_Bursts 
 % Created: 2015/12/11 at 24 Cummington, Boston
 %   Byron Price
@@ -21,12 +21,13 @@ function [] = Byrons_Plot_Spikes_Traces(filename)
 % OUTPUT: plots as many figures as videos ... be careful if there are lots
 %          videos
 load(filename)
-Fs = 22;
-n = [  2  4 5 7 11 13 14 15 18 19 20 21  24  27 28 30 31  1 32 33]; 
+Fs = 30;
+%n = [  2  4 5 7 11 13 14 15 18 19 20 21  24  27 28 30 31  1 32 33]; 
 %      1  2 3 4  5  6  7  8  9 10 11 12  13  14 15 16 17 18 19 20
-numVideos = 1; size(Spike_Data,1);
-numROIs = length(n); %size(Spike_Data,2);
+numVideos = size(Spike_Data,1);
+numROIs = size(Spike_Data,2); %length(n); 
 numFrames = size(Spike_Data,3);
+n = 1:numROIs;
 
 Recording_Time = size(Spike_Data,3)/Fs;
 
@@ -36,15 +37,18 @@ for i=1:numVideos
     traces = squeeze(Trace_Data(i,n,:));
     times = 1/Fs:1/Fs:Recording_Time;
     
-    figure
+    FigName = ['Video ' num2str(i) ' ' roi_ave.filename{i}];
+    figure('Name',FigName); hold on
     % AVALANCHE PLOT
-    h(1) = subplot(3,1,1);
+    h(1) = subplot(4,1,4);
     bar(times,avalanches)
     axis([1 Recording_Time 0 max(avalanches)+5])
+    ylabel('ROI count')
+    xlabel('Time (s)')
     
     % necessary to change data input for plotSpikeRaster
     spikecell = cell(numROIs,1);
-    for j=1:20; % 1:numROIs
+    for j = 1:numROIs
         for k=1:numFrames
             if spikes(j,k) == 1
                 spikecell{j} = [spikecell{j},times(k)];
@@ -52,13 +56,20 @@ for i=1:numVideos
         end
     end
     % SPIKE RASTERS
-    h(2)=subplot(3,1,2);
-    [~,~] = plotSpikeRaster(spikecell,'PlotType','vertline','SpikeDuration',1/Fs,'TimePerBin',1/Fs);
-        
+    h(2)=subplot(4,1,3);
+    plot_rastergram(times, spikes, 'colors', lines(numROIs)); % uses Nathan's plot_rastergram script; can be used with colors
+    %[~,~] = plotSpikeRaster(spikecell,'PlotType','vertline','SpikeDuration',1/Fs,'TimePerBin',1/Fs); % uses function in this script - draws one, NaN-interrupted line as spike raster
+    ylabel('ROI')
+    xlabel('Time (s)')
+    
     % TRACE PLOT
-    h(3) = subplot(3,1,3);
-    Fluorescence_Plot(traces,times,Recording_Time)
+    h(3) = subplot(4,1,[1:2]);
+%    Fluorescence_Plot(traces,times,Recording_Time)
+    trace_range = max(roi_ave.raw{i}, [], 2) - min(roi_ave.raw{i}, [], 2); % rescale lines so that noise in traces without spikes is not scaled up
+     plot_many(times,bsxfun(@(x, y) x * y, traces', trace_range(n)')); % uses Nathan's plotting script that orders the lines top to bottom, labels them, etc
+     ylabel('ROI')
     linkaxes(h,'x')
+    hold off
 end
 
 end

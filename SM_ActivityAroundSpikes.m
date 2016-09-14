@@ -1,4 +1,4 @@
-function NP_ActivityAroundSpikes(ROI, directory_raw, directory_out, varargin)
+function SM_ActivityAroundSpikes(ROI, directory_raw, directory_out, varargin)
 %NP_ACTIVITYAROUNDSPIKES
 %   This function is meant to help with finding an extracting a window of
 %   activity around spikes for comparison in a paper. This is achieved through
@@ -22,7 +22,7 @@ function NP_ActivityAroundSpikes(ROI, directory_raw, directory_out, varargin)
 fs = 30;
 skip_frames = 30; % first and last frames from each video that are discarded
 
-% selection details
+% selection detailsSM
 spike_donut_threshold = 3; % standard deviation for detecting spikes
 spike_all_threshold = 3; % standard deviations for detecting spikes
 min_donut_spikes = 7; % only generate figures for ROIs that have at least this many donut spikes
@@ -87,28 +87,10 @@ traces_all = cell(size(files)); % ROI * time
 
 for i = 1:files_count
     % load video (slow)
-    v = load(files{i}, 'video*');
-    nms = fieldnames(v);
-    if 1 ~= length(nms)
-        warning('More than one variable in the video file. Skipping.');
-        continue;
-    end
-    if isfield(v.(nms{1}), 'frames')
-        video = v.(nms{1});
-    else
-        video = struct('frames', v.(nms{1}));
-    end
-    clear v;
-    
-    % convert to grayscale
-    if 3 == ndims(video.frames(1).cdata) && 3 == size(video.frames(1).cdata, 3)
-        video_gs = video_rgb2gray(cat(4, video.frames(:).cdata));
-        video.frames = struct('cdata', squeeze(num2cell(video_gs, [1 2])));
-        clear video_gs;
-    end
+    video = load(files{i}, 'video*');
     
     % extract ROIs with donut
-    roi_trace = NP_ExtractROIs(video.frames((1 + skip_frames(1)):(end - skip_frames(2))), ROI, 1);
+    roi_trace = NP_ExtractROIs(video.video(:,:,(1 + skip_frames(1)):(end - skip_frames(2))), ROI, 1);
     
     % convert to spikes
     [~, ~, roi_spikes] = NP_From_Raw_To_Traces({roi_trace}, spike_donut_threshold);
@@ -117,7 +99,7 @@ for i = 1:files_count
     spikes_donut{i} = squeeze(roi_spikes);
     
     % extract ROIs without donut
-    roi_trace = NP_ExtractROIs(video.frames((1 + skip_frames(1)):(end - skip_frames(2))), ROI, 0);
+    roi_trace = NP_ExtractROIs(video.video(:,:,(1 + skip_frames(1)):(end - skip_frames(2))), ROI, 0);
     
     % convert to spikes
     [~, ~, roi_spikes] = NP_From_Raw_To_Traces({roi_trace}, spike_all_threshold);
@@ -186,25 +168,7 @@ for i = 1:files_count
     end
     
     % load video (slow)
-    v = load(files{i}, 'video*');
-    nms = fieldnames(v);
-    if 1 ~= length(nms)
-        warning('More than one variable in the video file. Skipping.');
-        continue;
-    end
-    if isfield(v.(nms{1}), 'frames')
-        video = v.(nms{1});
-    else
-        video = struct('frames', v.(nms{1}));
-    end
-    clear v;
-    
-    % convert to grayscale
-    if 3 == ndims(video.frames(1).cdata) && 3 == size(video.frames(1).cdata, 3)
-        video_gs = video_rgb2gray(cat(4, video.frames(:).cdata));
-        video.frames = struct('cdata', squeeze(num2cell(video_gs, [1 2])));
-        clear video_gs;
-    end
+    video = load(files{i}, 'video*');
     
     % name
     [~, name, ~] = fileparts(files{i});
@@ -222,8 +186,8 @@ for i = 1:files_count
             end
             
             % get relevant frames
-            frames = cat(3, video.frames((skip_frames(1) + k - window(1)):(skip_frames(1) + k + window(2))).cdata);
-            % scaling greyscale 
+            frames = video.video(:,:,((skip_frames(1) + k - window(1)):(skip_frames(1) + k + window(2))));
+            % NO scaling  
             raw = video_adjust(frames, [0.5 0.999]);
             
             % extract traces
@@ -276,12 +240,12 @@ for i = 1:files_count
                 % draw spikes
                 d = false(size(spikes));
                 d(j, :) = spikes(j, :);
-                dff2 = NP_DrawROIs(dff, ROI, d, fs);
+                dff2 = NP_DrawROIs(frames, ROI, d, fs);
                 
                 % write
                 video_write(fullfile(directory_out, num2str(j), sprintf('%s_%d_raw.mp4', name, k)), raw, fs); % black screen for sleep videos
                 %video_write(fullfile(directory_out, num2str(j), sprintf('%s_%d_dff.mp4', name, k)), dff, fs);
-                %video_write(fullfile(directory_out, num2str(j), sprintf('%s_%d_WithSpikes.mp4', name, k)), dff2, fs);
+                video_write(fullfile(directory_out, num2str(j), sprintf('%s_%d_WithSpikes.mp4', name, k)), dff2, fs);
             end
             
             if save_mat            

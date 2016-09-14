@@ -41,7 +41,7 @@ mov_listing(to_del)=[];
 load(fullfile(pwd,mov_listing{1}),'video');
 mov_data_temp = video.frames;
 for VideoIter = 1:length(mov_data_temp)
-    mov_data_temp(VideoIter)
+%    mov_data_temp(VideoIter)
     mov_data(:,:,:,VideoIter) = mov_data_temp(VideoIter).cdata;
    end
 mov_data = double(mov_data);
@@ -50,9 +50,9 @@ mov_data = double(mov_data);
 
 %t = 1/ave_fs % seconds/frame
 %ave_time = (t):(t):(duration);
-ave_time = video.times
+ave_time = 1/30:1/30:length(video.frames)/30;
 %number_of_frames = length(ave_time)
-number_of_frames = video.nrFramesTotal
+%number_of_frames = video.nrFramesTotal
 roi_ave.raw={};
 
 clear mov_data % to allow looping through each video below

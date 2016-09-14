@@ -1,8 +1,8 @@
 %% BACKGROUND SUBTRACTION, NO BAGELS
 
 % make dff
-% video_dff = NP_Dff(video.frames(30:end-30), 'clim', [0 1]);
-video_dff = NP_Dff(video_a, 'clim', [0 1]);
+video_dff = NP_Dff(video.frames(30:end-30), 'clim', [0 1]);
+%video_dff = NP_Dff(video_a, 'clim', [0 1]);
 
 % extract ROIs
 ave_roi = NP_ExtractROIs(video_dff, ROI, 0); % 0 means no bagsels or donuts
