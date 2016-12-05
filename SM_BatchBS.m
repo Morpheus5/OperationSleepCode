@@ -13,7 +13,7 @@ function [mov_data_BS] = SM_BatchBS(DIR)
 % Motion correction not working
 
 %% VARIABLES:
-DSFactor = 4; %downsampling: 4; otherwise 1
+DSFactor = 1; %downsampling: 4; otherwise 1
 mat_dir = 'BS_MOVIES';
 
 %% Make DFF_MOVIES folder
@@ -35,6 +35,7 @@ TotalMaX = zeros(512,512,length(mov_listing));
 
 %% Loop through videos
 for videoIter = 1:length(mov_listing);
+    tic
     [~,file,~] = fileparts(mov_listing{videoIter});
   	load(fullfile(DIR,mov_listing{videoIter}),'video');
     MaxImages = zeros(512,512,length(video.frames)); % preallocate matrix 
@@ -59,6 +60,8 @@ for videoIter = 1:length(mov_listing);
         clear video.frames; % so that after this loop, the next video can 
         % be read;   mov.data matrix = videoframes X, Y, frames
               
+        ReadInAndPrepareTime = toc
+        
         %% Downsample, subtract background and smooth  
         for frameIter = 1:(length(mov_data));
            mov_data_16bit(:,:,frameIter) = uint16(mov_data(frameIter).cdata/256);
@@ -75,6 +78,8 @@ for videoIter = 1:length(mov_listing);
         DiskSmooth = fspecial('disk',1); % smoothing with a very small disk
         mov_data_BS = imfilter(mov_data_BS,DiskSmooth);
 
+        DownsampleSmoothTime = toc
+        
         %% Calculating reference frame for imregister (100th frame) 
         LinKatOne = 1;
         for u = 50:55; % take y-lines in the middle of the downsized image
@@ -98,20 +103,20 @@ for videoIter = 1:length(mov_listing);
         %% correct motion artifacts in movies 
         % Commented out for now - veeerrrry slow, sometimes even crashes
                         
-%         [optimizer, metric] = imregconfig('multimodal'); % Same device, but might have different brightness ranges
-%         
-%         startMotionCorr = toc
-%         
-%         for frameIter=1:(size(mov_data_BS,3)); 
-%             mov_data_BS_MC(:,:,frameIter)=imregister(mov_data_BS(:,:,frameIter),mov_data_BS(:,:,100),'rigid',optimizer,metric);
-%         
-%             figure(1);
-%             colormap(bone);
-%             image(mov_data_BS_MC(:,:,frameIter),'CDataMapping','scaled');
-%             caxis([double(L),double(H)]); 
-%             set(gca,'ydir','reverse'); % Otherwise the y-axis would be flipped
-%             writeVideo(vidObj, getframe(gca));
-%         end
+         [optimizer, metric] = imregconfig('multimodal'); % Same device, but might have different brightness ranges
+        
+        StartMotionCorr = toc
+        
+        for frameIter=1:(size(mov_data_BS,3)); 
+            mov_data_BS_MC(:,:,frameIter)=imregister(mov_data_BS(:,:,frameIter),mov_data_BS(:,:,100),'rigid',optimizer,metric);
+        
+            figure(1);
+            colormap(bone);
+            image(mov_data_BS_MC(:,:,frameIter),'CDataMapping','scaled');
+            caxis([double(L),double(H)]); 
+            set(gca,'ydir','reverse'); % Otherwise the y-axis would be flipped
+            writeVideo(vidObj, getframe(gca));
+        end
         close(gcf); % gcf = get current figure 
         close(vidObj);
     
@@ -134,6 +139,7 @@ for videoIter = 1:length(mov_listing);
         end
         save(save_filename,'video','-v7.3');
 
+        MovieProcessingTime = toc
 end
 
 %% create maximum projection images with corrected alignment 
